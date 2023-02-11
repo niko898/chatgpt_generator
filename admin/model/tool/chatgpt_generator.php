@@ -1,6 +1,8 @@
 <?php
 class ModelToolChatgptGenerator extends Model {
-    public function generate(){
+    public $debug = 1;
+
+    public function generate($prompt){
         $dTemperature = 0.9;
         $iMaxTokens = 1000;
         $top_p = 1;
@@ -8,8 +10,6 @@ class ModelToolChatgptGenerator extends Model {
         $presence_penalty = 0.0;
         $OPENAI_API_KEY = $this->config->get('module_chatgpt_generator_api_key');
         $sModel = "text-davinci-003";
-        $prompt = $this->request->post['product_description'][1]['name'];
-        $ch = curl_init();
         $headers  = [
             'Accept: application/json',
             'Content-Type: application/json',
@@ -27,17 +27,53 @@ class ModelToolChatgptGenerator extends Model {
             'stop' => '[" Human:", " AI:"]',
         ];
 
-        curl_setopt($ch, CURLOPT_URL, 'https://api.openai.com/v1/completions');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 120);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
+        $result = $this->request('https://api.openai.com/v1/completions', $headers, $postData);
+        return $result;
+    }
 
-        $result = curl_exec($ch);
-        $decoded_json = json_decode($result, true);
 
-        print_r($decoded_json['choices'][0]['text']);
-        exit;
+    public function request($url, $header = array(), $data = array()){
+        if(!$header){
+            $header = array('Content-Type:application/x-www-form-urlencoded');
+        }
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($curl, CURLOPT_POST, 1);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 120);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+        $out = curl_exec($curl);
+        $code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+        $code = (int) $code;
+        $errors = array(
+            400 => 'Bad request',
+            401 => 'Unauthorized',
+            403 => 'Forbidden',
+            404 => 'Not found',
+            500 => 'Internal server error',
+            502 => 'Bad gateway',
+            503 => 'Service unavailable',
+        );
+        if ($code < 200 && $code > 204) {
+            $this->log("We got some error $code: " . $errors[$code]);
+            return false;
+        }
+        $response = json_decode($out, true);
+        $this->log("Answer from chatGPT - $url - [$code]: " . print_r($response, true));
+        return $response;
+    }
+
+    public function log($message){
+        if(!$this->debug){
+            return;
+        }
+        if (file_exists(DIR_LOGS . 'chatgpt_generator.log') && filesize(DIR_LOGS . 'chatgpt_generator.log') >= 100 * 1024 * 1024) {
+            unlink(DIR_LOGS . 'chatgpt_generator.log');
+        }
+        if($this->debug){
+            file_put_contents(DIR_LOGS . 'chatgpt_generator.log', date("Y-m-d H:i:s - ") . ": " . $message . "\r\n", FILE_APPEND);
+        }
     }
 }

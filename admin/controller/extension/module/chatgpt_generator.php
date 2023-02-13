@@ -14,7 +14,7 @@ class ControllerExtensionModuleChatgptGenerator extends Controller {
 
             $this->session->data['success'] = $this->language->get('text_success');
 
-            $this->response->redirect($this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=module', true));
+            $this->response->redirect($this->url->link('extension/module/chatgpt_generator', 'user_token=' . $this->session->data['user_token'], true));
         }
 
         if (isset($this->error['warning'])) {
@@ -23,10 +23,59 @@ class ControllerExtensionModuleChatgptGenerator extends Controller {
             $data['error_warning'] = '';
         }
 
+        if (isset($this->session->data['success'])) {
+            $data['success'] = $this->session->data['success'];
+            unset($this->session->data['success']);
+        } else {
+            $data['success'] = '';
+        }
+
         if (isset($this->error['error_api_key'])) {
             $data['error_api_key'] = $this->error['error_api_key'];
         } else {
             $data['error_api_key'] = '';
+        }
+
+        if (isset($this->error['error_temperature'])) {
+            $data['error_temperature'] = $this->error['error_temperature'];
+        } else {
+            $data['error_temperature'] = '';
+        }
+
+        if (isset($this->error['error_max_tokens'])) {
+            $data['error_max_tokens'] = $this->error['error_max_tokens'];
+        } else {
+            $data['error_max_tokens'] = '';
+        }
+
+        if (isset($this->error['error_top_p'])) {
+            $data['error_top_p'] = $this->error['error_top_p'];
+        } else {
+            $data['error_top_p'] = '';
+        }
+
+        if (isset($this->error['error_presence_penalty'])) {
+            $data['error_presence_penalty'] = $this->error['error_presence_penalty'];
+        } else {
+            $data['error_presence_penalty'] = '';
+        }
+
+        if (isset($this->error['error_frequency_penalty'])) {
+            $data['error_frequency_penalty'] = $this->error['error_frequency_penalty'];
+        } else {
+            $data['error_frequency_penalty'] = '';
+        }
+
+        if (isset($this->error['error_model'])) {
+            $data['error_model'] = $this->error['error_model'];
+        } else {
+            $data['error_model'] = '';
+        }
+
+        if (isset($this->error['error_stop'])) {
+            $data['error_stop'] = $this->error['error_stop'];
+        } else {
+            $data['error_stop'] = '';
         }
 
         $data['breadcrumbs'] = array();
@@ -58,6 +107,12 @@ class ControllerExtensionModuleChatgptGenerator extends Controller {
             $data['status'] = $this->config->get('module_chatgpt_generator_status');
         }
 
+        if (isset($this->request->post['module_chatgpt_generator_product_description_status'])) {
+            $data['product_description_status'] = $this->request->post['module_chatgpt_generator_product_description_status'];
+        } else {
+            $data['product_description_status'] = $this->config->get('module_chatgpt_generator_product_description_status');
+        }
+
         if (isset($this->request->post['module_chatgpt_generator_api_key'])) {
             $data['api_key'] = $this->request->post['module_chatgpt_generator_api_key'];
         } else {
@@ -69,6 +124,69 @@ class ControllerExtensionModuleChatgptGenerator extends Controller {
         } else {
             $data['prompt'] = $this->config->get('module_chatgpt_generator_prompt');
         }
+
+        if (isset($this->request->post['module_chatgpt_generator_temperature'])) {
+            $data['temperature'] = $this->request->post['module_chatgpt_generator_temperature'];
+        } else {
+            $data['temperature'] = $this->config->get('module_chatgpt_generator_temperature');
+        }
+
+        if (isset($this->request->post['module_chatgpt_generator_max_tokens'])) {
+            $data['max_tokens'] = $this->request->post['module_chatgpt_generator_max_tokens'];
+        } else {
+            $data['max_tokens'] = $this->config->get('module_chatgpt_generator_max_tokens');
+        }
+
+        if (isset($this->request->post['module_chatgpt_generator_top_p'])) {
+            $data['top_p'] = $this->request->post['module_chatgpt_generator_top_p'];
+        } else {
+            $data['top_p'] = $this->config->get('module_chatgpt_generator_top_p');
+        }
+
+        if (isset($this->request->post['module_chatgpt_generator_presence_penalty'])) {
+            $data['presence_penalty'] = $this->request->post['module_chatgpt_generator_presence_penalty'];
+        } else {
+            $data['presence_penalty'] = $this->config->get('module_chatgpt_generator_presence_penalty');
+        }
+
+        if (isset($this->request->post['module_chatgpt_generator_frequency_penalty'])) {
+            $data['frequency_penalty'] = $this->request->post['module_chatgpt_generator_frequency_penalty'];
+        } else {
+            $data['frequency_penalty'] = $this->config->get('module_chatgpt_generator_frequency_penalty');
+        }
+
+        if (isset($this->request->post['module_chatgpt_generator_model'])) {
+            $data['model'] = $this->request->post['module_chatgpt_generator_model'];
+        } else {
+            $data['model'] = $this->config->get('module_chatgpt_generator_model');
+        }
+
+        if (isset($this->request->post['module_chatgpt_generator_stop'])) {
+            $data['stop'] = $this->request->post['module_chatgpt_generator_stop'];
+        } else {
+            $data['stop'] = $this->config->get('module_chatgpt_generator_stop');
+        }
+
+        if (isset($this->request->post['module_chatgpt_generator_languages'])) {
+            $data['languages'] = $this->request->post['module_chatgpt_generator_languages'];
+        } else {
+            $data['languages'] = $this->config->get('module_chatgpt_generator_languages');
+        }
+
+        $models = array(
+            'text-davinci-003'  => 'text-davinci-003',
+            'text-curie-001' => 'text-curie-001',
+            'text-babbage-001' => 'text-babbage-001',
+            'text-ada-001' => 'text-ada-001',
+            'text-davinci-002' => 'text-davinci-002',
+            'text-davinci-001' => 'text-davinci-001',
+            'davinci' => 'davinci',
+        );
+
+        $data['models_data'] = $models;
+
+        $this->load->model('localisation/language');
+        $data['languages_data'] = $this->model_localisation_language->getLanguages();
 
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
@@ -84,7 +202,7 @@ class ControllerExtensionModuleChatgptGenerator extends Controller {
             $this->load->model('tool/chatgpt_generator');
             $result = $this->model_tool_chatgpt_generator->generate($prompt);
             if(isset($result['choices'][0]['text'])){
-                $json['result'] = $result['choices'][0]['text'];
+                $json['result'] = trim($result['choices'][0]['text']);
             }
         }
 
@@ -96,11 +214,49 @@ class ControllerExtensionModuleChatgptGenerator extends Controller {
         if (!$this->user->hasPermission('modify', 'extension/module/chatgpt_generator')) {
             $this->error['warning'] = $this->language->get('error_permission');
         }
-
-        if ((utf8_strlen($this->request->post['module_chatgpt_generator_api_key']) < 3) || (utf8_strlen($this->request->post['module_chatgpt_generator_api_key']) > 256)) {
+        if ((utf8_strlen($this->request->post['module_chatgpt_generator_api_key']) < 8) || (utf8_strlen($this->request->post['module_chatgpt_generator_api_key']) > 256)) {
             $this->error['error_api_key'] = $this->language->get('error_api_key');
+        }
+        if ((utf8_strlen($this->request->post['module_chatgpt_generator_temperature']) < 1) || (utf8_strlen($this->request->post['module_chatgpt_generator_temperature']) > 256)) {
+            $this->error['error_temperature'] = $this->language->get('error_temperature');
+        }
+        if ((utf8_strlen($this->request->post['module_chatgpt_generator_max_tokens']) < 1) || (utf8_strlen($this->request->post['module_chatgpt_generator_max_tokens']) > 256)) {
+            $this->error['error_max_tokens'] = $this->language->get('error_max_tokens');
+        }
+        if ((utf8_strlen($this->request->post['module_chatgpt_generator_top_p']) < 1) || (utf8_strlen($this->request->post['module_chatgpt_generator_top_p']) > 256)) {
+            $this->error['error_top_p'] = $this->language->get('error_top_p');
+        }
+        if ((utf8_strlen($this->request->post['module_chatgpt_generator_presence_penalty']) < 1) || (utf8_strlen($this->request->post['module_chatgpt_generator_presence_penalty']) > 256)) {
+            $this->error['error_presence_penalty'] = $this->language->get('error_presence_penalty');
+        }
+        if ((utf8_strlen($this->request->post['module_chatgpt_generator_frequency_penalty']) < 1) || (utf8_strlen($this->request->post['module_chatgpt_generator_frequency_penalty']) > 256)) {
+            $this->error['error_frequency_penalty'] = $this->language->get('error_frequency_penalty');
+        }
+        if ((utf8_strlen($this->request->post['module_chatgpt_generator_model']) < 1) || (utf8_strlen($this->request->post['module_chatgpt_generator_model']) > 256)) {
+            $this->error['error_model'] = $this->language->get('error_model');
+        }
+        if ((utf8_strlen($this->request->post['module_chatgpt_generator_stop']) < 1) || (utf8_strlen($this->request->post['module_chatgpt_generator_stop']) > 256)) {
+            //$this->error['error_stop'] = $this->language->get('error_stop');
         }
 
         return !$this->error;
+    }
+
+    public function install(){
+        $this->load->model('setting/setting');
+        $data = array(
+            'module_chatgpt_generator_status' => 0,
+            'module_chatgpt_generator_product_description_status' => 1,
+            'module_chatgpt_generator_api_key' => '',
+            'module_chatgpt_generator_model' => 'text-davinci-003',
+            'module_chatgpt_generator_temperature' => 0.9,
+            'module_chatgpt_generator_max_tokens' => 1000,
+            'module_chatgpt_generator_top_p' => 1,
+            'module_chatgpt_generator_presence_penalty' => 0.0,
+            'module_chatgpt_generator_frequency_penalty' => 0.0,
+            'module_chatgpt_generator_stop' => '',
+            'module_chatgpt_generator_prompt' => 'Generate product description for seo store. For product #product_name#. Please minimum 500 words',
+        );
+        $this->model_setting_setting->editSetting('module_chatgpt_generator', $data);
     }
 }

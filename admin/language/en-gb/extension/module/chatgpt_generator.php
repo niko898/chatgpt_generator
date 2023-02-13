@@ -7,11 +7,44 @@ $_['text_extension']   = 'Extensions';
 $_['text_success']     = 'Success: You have modified module!';
 $_['text_edit']        = 'ChatGPT plugin Settings';
 
+// Buttons
+$_['button_test']   = 'Send request';
+
 // Entry
 $_['entry_status']     = 'Status';
+$_['entry_product_description_status']     = 'Generate product description';
 $_['entry_api_key']     = 'ChatGPT Api key';
 $_['entry_prompt']     = 'Prompt';
+$_['entry_temperature']     = 'Temperature';
+$_['entry_max_tokens']     = 'Max tokens';
+$_['entry_top_p']     = 'Top_p';
+$_['entry_presence_penalty']     = 'Presence penalty';
+$_['entry_frequency_penalty']     = 'Frequency penalty';
+$_['entry_model']     = 'Model';
+$_['entry_stop']     = 'Stop (Comma separated)';
+$_['entry_test']     = 'Testing';
+$_['entry_languages']     = 'Languages';
+
+// Help
+$_['help_temperature']     = 'What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+We generally recommend altering this or top_p but not both.';
+$_['help_max_tokens']     = 'The maximum number of tokens to generate in the completion.
+The token count of your prompt plus max_tokens cannot exceed the model\'s context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).';
+$_['help_top_p']     = 'An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
+We generally recommend altering this or temperature but not both.';
+$_['help_presence_penalty']     = 'Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model\'s likelihood to talk about new topics.';
+$_['help_frequency_penalty']     = 'Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model\'s likelihood to repeat the same line verbatim.';
+$_['help_model']     = 'ID of the model to use.';
+$_['help_stop']     = 'Up to 4 sequences where the API will stop generating further tokens. The returned text will not contain the stop sequence.';
+$_['help_languages']     = 'Languages which module will work (The lanuage will add to the prompt)';
 
 // Error
 $_['error_permission'] = 'Warning: You do not have permission to modify account module!';
 $_['error_api_key'] = 'The ChatGPT Api key field is required';
+$_['error_temperature'] = 'The ' . $_['entry_temperature'] . ' field is required';
+$_['error_max_tokens'] = 'The ' . $_['entry_max_tokens'] . ' field is required';
+$_['error_top_p'] = 'The ' . $_['entry_top_p'] . ' field is required';
+$_['error_presence_penalty'] = 'The ' . $_['entry_presence_penalty'] . ' field is required';
+$_['error_frequency_penalty'] = 'The ' . $_['entry_frequency_penalty'] . ' field is required';
+$_['error_model'] = 'The ' . $_['entry_model'] . ' field is required';
+$_['error_stop'] = 'The ' . $_['entry_stop'] . ' field is required';

@@ -3,19 +3,23 @@ class ModelToolChatgptGenerator extends Model {
     public $debug = 1;
 
     public function generate($prompt){
-        $dTemperature = 0.9;
-        $iMaxTokens = 1000;
-        $top_p = 1;
-        $frequency_penalty = 0.0;
-        $presence_penalty = 0.0;
+        $dTemperature = (float)$this->config->get('module_chatgpt_generator_temperature');
+        $iMaxTokens = (int)$this->config->get('module_chatgpt_generator_max_tokens');
+        $top_p = (float)$this->config->get('module_chatgpt_generator_top_p');;
+        $frequency_penalty = (float)$this->config->get('module_chatgpt_generator_frequency_penalty');
+        $presence_penalty = (float)$this->config->get('module_chatgpt_generator_presence_penalty');
         $OPENAI_API_KEY = $this->config->get('module_chatgpt_generator_api_key');
-        $sModel = "text-davinci-003";
+        $sModel = $this->config->get('module_chatgpt_generator_model');
         $headers  = [
             'Accept: application/json',
             'Content-Type: application/json',
             'Authorization: Bearer ' . $OPENAI_API_KEY . ''
         ];
 
+        $stop = "\n";
+        if($this->config->get('module_chatgpt_generator_stop')){
+            $stop = explode(',', $this->config->get('module_chatgpt_generator_stop'));
+        }
         $postData = [
             'model' => $sModel,
             'prompt' => str_replace('"', '', $prompt),
@@ -24,7 +28,7 @@ class ModelToolChatgptGenerator extends Model {
             'top_p' => $top_p,
             'frequency_penalty' => $frequency_penalty,
             'presence_penalty' => $presence_penalty,
-            'stop' => '[" Human:", " AI:"]',
+            'stop' => json_encode($stop),
         ];
 
         $result = $this->request('https://api.openai.com/v1/completions', $headers, $postData);

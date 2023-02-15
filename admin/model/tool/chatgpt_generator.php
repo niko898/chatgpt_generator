@@ -1,6 +1,98 @@
 <?php
 class ModelToolChatgptGenerator extends Model {
-    public $debug = 1;
+    public $debug = 0;
+
+    public function __construct($registry)
+    {
+        parent::__construct($registry);
+        ini_set('max_execution_time', 3000);
+
+        if($this->config->get('module_chatgpt_generator_debug_status')){
+            $this->debug = 1;
+        }
+    }
+
+    public function startGeneration(){
+        if(!$this->config->get('module_chatgpt_generator_status') || !$this->config->get('module_chatgpt_generator_prompt') || $this->config->get('module_chatgpt_generator_prompt') == ''){
+            return false;
+        }
+
+        $this->load->model('localisation/language');
+        $languages_data_raw = $this->model_localisation_language->getLanguages();
+        $languages_data = array();
+        foreach ($languages_data_raw as $language){
+            $languages_data[$language['language_id']] = $language['name'];
+        }
+
+        $product_id = $this->getOneProduct();
+        $this->log("Start work with product $product_id");
+
+        while ($product_id){
+            if(!$this->config->get('module_chatgpt_generator_status') || !$this->config->get('module_chatgpt_generator_prompt') || $this->config->get('module_chatgpt_generator_prompt') == ''){
+                return false;
+            }
+            if($product_id && $product_id != 0){
+                $languages = $this->config->get('module_chatgpt_generator_languages');
+                if(!count($languages)){
+                    $languages[] = $this->config->get('config_language_id');
+                }
+
+                $this->load->model('catalog/product');
+                $product_data = $this->model_catalog_product->getProduct($product_id);
+                $productDescriptions = $this->model_catalog_product->getProductDescriptions($product_id);
+
+
+                foreach ($languages as $language_id){
+                    $prompt = $this->config->get('module_chatgpt_generator_prompt');
+                    if(isset($languages_data[$language_id])){
+                        $prompt .= " In " . $languages_data[$language_id] . " language.";
+                    }
+
+                    $this->log("Use language $language_id for product $product_id");
+
+                    $find = array(
+                        '{product_name}',
+                        '{product_model}',
+                        '{product_sku}',
+                        '{product_ean}'
+                    );
+
+                    if(!isset($productDescriptions[$language_id]['name'])){
+                        $productDescriptions[$language_id]['name'] = '';
+                    }
+
+                    $replace = array(
+                        'product_name' => $productDescriptions[$language_id]['name'],
+                        'product_model'  => $product_data['model'],
+                        'product_sku'   => $product_data['sku'],
+                        'product_ean' => $product_data['ean'],
+                    );
+
+                    $prompt = preg_replace(array("/\s\s+/", "/\r\r+/", "/\n\n+/"), '<br />', trim(str_replace($find, $replace, $prompt)));
+
+                    $result_ai = $this->generate($prompt);
+
+                    if($result_ai){
+                        if(isset($result_ai['choices'][0]['text'])){
+                            $raw_text = trim($result_ai['choices'][0]['text']);
+                            $this->updateProductDescription($product_id, $raw_text, $language_id);
+                            $this->log("The product $product_id with lang $language_id - description updated");
+                        }else{
+                            $this->log("Process stopped because we got empty response text from chatGPT");
+                            return false;
+                        }
+                    }else{
+                        $this->log("Process stopped because we got error from chatGPT");
+                        return false;
+                    }
+                }
+            }else{
+                break;
+            }
+            $product_id = $this->getOneProduct();
+        }
+        return true;
+    }
 
     public function generate($prompt){
         $dTemperature = (float)$this->config->get('module_chatgpt_generator_temperature');
@@ -65,8 +157,87 @@ class ModelToolChatgptGenerator extends Model {
             return false;
         }
         $response = json_decode($out, true);
+        $this->log("Request to chatGPT - $url : " . print_r($data, true));
         $this->log("Answer from chatGPT - $url - [$code]: " . print_r($response, true));
         return $response;
+    }
+
+    public function getProductDescriptionEmpty(){
+        $query = $this->db->query("SELECT product_id FROM " . DB_PREFIX . "product_description WHERE description = '' AND language_id='" . (int)$this->config->get('config_language_id') . "'");
+        if ($query->num_rows) {
+            return $query->rows;
+        }
+        return false;
+    }
+
+    public function addProduct($product_id){
+        if(!$this->checkProduct($product_id)){
+            $this->db->query("INSERT INTO  " . DB_PREFIX . "chatgpt_products SET product_id = ' " . (int) $product_id . "'");
+        }
+    }
+
+    public function checkProduct($product_id){
+        $query = $this->db->query("SELECT product_id FROM " . DB_PREFIX . "chatgpt_products WHERE product_id = ' " . (int) $product_id . "'");
+        if ($query->num_rows) {
+            return true;
+        }
+        return false;
+    }
+
+    public function getProducts(){
+        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "chatgpt_products ");
+        if ($query->num_rows) {
+            return $query->rows;
+        }
+        return false;
+    }
+
+    public function getOneProduct(){
+        $query = $this->db->query("SELECT product_id FROM " . DB_PREFIX . "chatgpt_products LIMIT 1");
+        if ($query->num_rows) {
+            $this->deleteProduct($query->row['product_id']);
+            return $query->row['product_id'];
+        }
+        return false;
+    }
+
+    public function deleteProduct($product_id){
+        $this->db->query("DELETE FROM " . DB_PREFIX . "chatgpt_products WHERE product_id = '" . (int) $product_id . "'");
+    }
+
+    public function addProductBad($product_id){
+        if(!$this->checkBadProduct($product_id)){
+            $this->db->query("INSERT INTO  " . DB_PREFIX . "chatgpt_products_bad SET product_id = ' " . (int) $product_id . "'");
+        }
+    }
+
+    public function checkBadProduct($product_id){
+        $query = $this->db->query("SELECT product_id FROM " . DB_PREFIX . "chatgpt_products_bad WHERE product_id = ' " . (int) $product_id . "'");
+        if ($query->num_rows) {
+            return true;
+        }
+        return false;
+    }
+
+    public function getProductsBad(){
+        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "chatgpt_products_bad ");
+        if ($query->num_rows) {
+            return $query->rows;
+        }
+        return false;
+    }
+
+    public function getOneProductBad(){
+        $query = $this->db->query("SELECT product_id FROM " . DB_PREFIX . "chatgpt_products_bad LIMIT 1");
+        if ($query->num_rows) {
+            $this->deleteProduct($query->row['product_id']);
+            return $query->row['product_id'];
+        }
+        return false;
+    }
+
+    public function deleteProductBad($product_id){
+        $this->db->query("DELETE FROM " . DB_PREFIX . "chatgpt_products_bad WHERE product_id = '" . (int) $product_id . "'");
     }
 
     public function log($message){
@@ -79,5 +250,12 @@ class ModelToolChatgptGenerator extends Model {
         if($this->debug){
             file_put_contents(DIR_LOGS . 'chatgpt_generator.log', date("Y-m-d H:i:s - ") . ": " . $message . "\r\n", FILE_APPEND);
         }
+    }
+
+    public function updateProductDescription($product_id, $description, $language_id = 0){
+        if(!$language_id){
+            $language_id = $this->config->get('config_language_id');
+        }
+        $this->db->query("UPDATE " . DB_PREFIX . "product_description SET description = '" . $this->db->escape($description) . "' WHERE product_id = '" . (int)$product_id  . "' AND language_id='" . (int)$language_id . "'");
     }
 }

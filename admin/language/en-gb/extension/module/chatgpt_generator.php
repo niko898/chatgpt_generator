@@ -6,12 +6,20 @@ $_['heading_title']    = 'ChatGPT plugin from Galocaffe';
 $_['text_extension']   = 'Extensions';
 $_['text_success']     = 'Success: You have modified module!';
 $_['text_edit']        = 'ChatGPT plugin Settings';
+$_['text_test_section']        = 'Test section';
 
 // Buttons
 $_['button_test']   = 'Send request';
+$_['button_add_to_list']   = 'Add products with empty description to work list';
+$_['button_add_all_products']   = 'Add all products to work list';
+$_['button_add_to_bad_list']   = 'Add Bad products to work list';
+$_['button_clear_products']        = 'Clear the work list';
+$_['button_manual_add_to_list']        = 'Add these products to work list';
+$_['button_test_start']        = 'Start generation (only for few products, please use the cron)';
 
 // Entry
 $_['entry_status']     = 'Status';
+$_['entry_debug_status']     = 'Debug status';
 $_['entry_product_description_status']     = 'Generate product description';
 $_['entry_api_key']     = 'ChatGPT Api key';
 $_['entry_prompt']     = 'Prompt';
@@ -24,6 +32,11 @@ $_['entry_model']     = 'Model';
 $_['entry_stop']     = 'Stop (Comma separated)';
 $_['entry_test']     = 'Testing';
 $_['entry_languages']     = 'Languages';
+$_['entry_product_work_count']     = 'IMPORTANT! Add the products to work list';
+$_['entry_bad_product_work_count']     = 'Bad products list';
+$_['entry_cron']     = 'Cron task command';
+$_['entry_manual']     = 'Add manual products';
+
 
 // Help
 $_['help_temperature']     = 'What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
@@ -37,6 +50,9 @@ $_['help_frequency_penalty']     = 'Number between -2.0 and 2.0. Positive values
 $_['help_model']     = 'ID of the model to use.';
 $_['help_stop']     = 'Up to 4 sequences where the API will stop generating further tokens. The returned text will not contain the stop sequence.';
 $_['help_languages']     = 'Languages which module will work (The lanuage will add to the prompt)';
+$_['help_product_work_count']     = 'Here you should to add products to work list, you can add all products or only where are empty descriptions. (Without this list the generator won`t work, the count must be more than 0)';
+$_['help_bad_product_work_count']     = 'This list contain count of bad products, bad products this is when during generation the module got some error - this product will add to bad lists automatically';
+$_['help_manual']     = 'With this field you can add the product list what will be generated';
 
 // Error
 $_['error_permission'] = 'Warning: You do not have permission to modify account module!';

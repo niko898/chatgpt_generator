@@ -45,6 +45,20 @@
                         </div>
                     </div>
                     <div class="form-group">
+                        <label class="col-sm-2 control-label" for="input-debug_status">{{ entry_debug_status }}</label>
+                        <div class="col-sm-10">
+                            <select name="module_chatgpt_generator_debug_status" id="input-debug_status" class="form-control">
+                                {% if status %}
+                                    <option value="1" selected="selected">{{ text_enabled }}</option>
+                                    <option value="0">{{ text_disabled }}</option>
+                                {% else %}
+                                    <option value="1">{{ text_enabled }}</option>
+                                    <option value="0" selected="selected">{{ text_disabled }}</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label class="col-sm-2 control-label" for="input-product-description-status">{{ entry_product_description_status }}</label>
                         <div class="col-sm-10">
                             <select name="module_chatgpt_generator_product_description_status" id="input-product-_description-status" class="form-control">
@@ -158,12 +172,52 @@
                         </div>
                     </div>
                     <div class="form-group">
+                        <label class="col-sm-2 control-label" for="input-product-work-count"><span data-toggle="tooltip" title="{{ help_product_work_count }}" style="font-weight: 900;">{{ entry_product_work_count }}</span></label>
+                        <div class="col-sm-10">
+                            <input type="text" readonly="readonly" id="input-product-work-count" value="{{ product_work_count }}" class="form-control" />
+                            <button onclick="addProductsToList(); return false;" class="add-products-to-list btn btn-primary"  style="margin-top: 10px;">{{ button_add_to_list }}</button>
+                            <button onclick="addAllProductsToList(); return false;" class="add-all-products-to-list btn btn-primary"  style="margin-top: 10px;">{{ button_add_all_products }}</button>
+                            <button onclick="clearProductsToList(); return false;" class="clear-products-to-list btn btn-danger"  style="margin-top: 10px;">{{ button_clear_products }}</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="input-product-work-count"><span data-toggle="tooltip" title="{{ help_bad_product_work_count }}">{{ entry_bad_product_work_count }}</span></label>
+                        <div class="col-sm-10">
+                            <input type="text" readonly="readonly" id="input-bad-product-work-count" value="{{ bad_product_work_count }}" class="form-control" />
+                            <button onclick="addBadProductsToList(); return false;" class="add-bad-products-to-list btn btn-primary"  style="margin-top: 10px;">{{ button_add_to_bad_list }}</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="input-manual"><span data-toggle="tooltip" title="{{ help_manual }}">{{ entry_manual }}</span></label>
+                        <div class="col-sm-10">
+                            <input type="text" name="manual" value="" placeholder="{{ entry_manual }}" id="input-manual" class="form-control"/>
+                            <div id="product-manual" class="well well-sm" style="height: 150px; overflow: auto;"> {% for product_related in product_relateds %}
+                                    <div id="product-manual{{ product_related.product_id }}"><i class="fa fa-minus-circle"></i> {{ product_related.name }}
+                                        <input type="hidden" name="product_manual[]" value="{{ product_related.product_id }}"/>
+                                    </div>
+                                {% endfor %}</div>
+                            <button onclick="addManualProductsToList(); return false;" class="add-manual-products-to-list btn btn-primary" >{{ button_manual_add_to_list }}</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="input-prompt">{{ entry_cron }}</label>
+                        <div class="col-sm-10">
+                            <span>{{ chatgpt_generator_cron }}</span>
+                            <br><br>
+                            <span>{{ chatgpt_generator_web_cron }}</span>
+                            <br><br>
+                            <a target="_blank" href="{{ chatgpt_generator_web_cron }}" class="btn btn-success">{{ button_test_start }}</a>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="center-block" style="text-align: center"><h3>{{ text_test_section }}</h3></div>
+                    </div>
+                    <div class="form-group">
                         <label class="col-sm-2 control-label" for="input-prompt">{{ entry_prompt }}</label>
                         <div class="col-sm-10">
                             <input type="text" name="module_chatgpt_generator_prompt" value="{{ prompt }}" placeholder="{{ entry_prompt }}" id="input-prompt" class="form-control" />
                         </div>
                     </div>
-
                     <div class="testing">
                         <div class="form-group">
                             <label class="col-sm-2 control-label" for="input-prompt">{{ entry_test }}</label>
@@ -194,5 +248,114 @@
 			}
 		});
 	}
+	function addProductsToList(){
+		$.ajax({
+			url: 'index.php?route=extension/module/chatgpt_generator/setProductList&user_token={{ user_token }}',
+			dataType: 'json',
+			beforeSend: function() {
+				$('.add-products-to-list').button('loading');
+			},
+			complete: function() {
+				$('.add-products-to-list').button('reset');
+			},
+			success: function(json) {
+				$('#input-product-work-count').val(json['product_work_count']);
+			}
+		});
+	}
+	function addBadProductsToList(){
+		$.ajax({
+			url: 'index.php?route=extension/module/chatgpt_generator/setBadProductList&user_token={{ user_token }}',
+			dataType: 'json',
+			beforeSend: function() {
+				$('.add-bad-products-to-list').button('loading');
+			},
+			complete: function() {
+				$('.add-bad-products-to-list').button('reset');
+			},
+			success: function(json) {
+				$('#input-product-work-count').val(json['product_work_count']);
+				$('#input-bad-product-work-count').val(json['bad_product_work_count']);
+			}
+		});
+	}
+	function addAllProductsToList(){
+		$.ajax({
+			url: 'index.php?route=extension/module/chatgpt_generator/setAllProductList&user_token={{ user_token }}',
+			dataType: 'json',
+			beforeSend: function() {
+				$('.add-all-products-to-list').button('loading');
+			},
+			complete: function() {
+				$('.add-all-products-to-list').button('reset');
+			},
+			success: function(json) {
+				$('#input-product-work-count').val(json['product_work_count']);
+			}
+		});
+	}
+	function clearProductsToList(){
+		$.ajax({
+			url: 'index.php?route=extension/module/chatgpt_generator/clearProductList&user_token={{ user_token }}',
+			dataType: 'json',
+			beforeSend: function() {
+				$('.clear-products-to-list').button('loading');
+			},
+			complete: function() {
+				$('.clear-products-to-list').button('reset');
+			},
+			success: function(json) {
+				$('#input-product-work-count').val(json['product_work_count']);
+			}
+		});
+	}
+
+	function addManualProductsToList(){
+		$.ajax({
+			url: 'index.php?route=extension/module/chatgpt_generator/addManualProductList&user_token={{ user_token }}',
+            type: 'POST',
+            data: $('input[name^=product_manual]'),
+			dataType: 'json',
+			beforeSend: function() {
+				$('.add-manual-products-to-list').button('loading');
+			},
+			complete: function() {
+				$('.add-manual-products-to-list').button('reset');
+			},
+			success: function(json) {
+				$('#input-product-work-count').val(json['product_work_count']);
+			}
+		});
+	}
+
+	// Related
+	$('input[name=\'manual\']').autocomplete({
+		'source': function(request, response) {
+			$.ajax({
+				url: 'index.php?route=catalog/product/autocomplete&user_token={{ user_token }}&filter_name=' + encodeURIComponent(request),
+				dataType: 'json',
+				success: function(json) {
+					response($.map(json, function(item) {
+						return {
+							label: item['name'],
+							value: item['product_id']
+						}
+					}));
+				}
+			});
+		},
+		'select': function(item) {
+			$('input[name=\'manual\']').val('');
+
+			$('#product-manual' + item['value']).remove();
+
+			$('#product-manual').append('<div id="product-manual' + item['value'] + '"><i class="fa fa-minus-circle"></i> ' + item['label'] + '<input type="hidden" name="product_manual[]" value="' + item['value'] + '" /></div>');
+		}
+	});
+
+	$('#product-manual').delegate('.fa-minus-circle', 'click', function() {
+		$(this).parent().remove();
+	});
+
 </script>
 {{ footer }}

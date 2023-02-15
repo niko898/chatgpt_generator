@@ -8,6 +8,7 @@ class ControllerExtensionModuleChatgptGenerator extends Controller {
         $this->document->setTitle($this->language->get('heading_title'));
 
         $this->load->model('setting/setting');
+        $this->load->model('tool/chatgpt_generator');
 
         if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
             $this->model_setting_setting->editSetting('module_chatgpt_generator', $this->request->post);
@@ -99,12 +100,22 @@ class ControllerExtensionModuleChatgptGenerator extends Controller {
 
         $data['cancel'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=module', true);
 
+        $data["chatgpt_generator_cron"] = "php " . realpath(DIR_SYSTEM . "../cron/chatgpt_generator.php");
+        $data["chatgpt_generator_web_cron"] = HTTP_CATALOG . "cron/chatgpt_generator.php";
+
+
         $data['user_token'] = $this->session->data['user_token'];
 
         if (isset($this->request->post['module_chatgpt_generator_status'])) {
             $data['status'] = $this->request->post['module_chatgpt_generator_status'];
         } else {
             $data['status'] = $this->config->get('module_chatgpt_generator_status');
+        }
+
+        if (isset($this->request->post['module_chatgpt_generator_debug_status'])) {
+            $data['debug_status'] = $this->request->post['module_chatgpt_generator_debug_status'];
+        } else {
+            $data['debug_status'] = $this->config->get('module_chatgpt_generator_debug_status');
         }
 
         if (isset($this->request->post['module_chatgpt_generator_product_description_status'])) {
@@ -188,11 +199,124 @@ class ControllerExtensionModuleChatgptGenerator extends Controller {
         $this->load->model('localisation/language');
         $data['languages_data'] = $this->model_localisation_language->getLanguages();
 
+        $data['product_work_count'] = 0;
+        $product_work_count = $this->model_tool_chatgpt_generator->getProducts();
+        if($product_work_count){
+            $data['product_work_count'] = count($product_work_count);
+        }
+
+        $data['bad_product_work_count'] = 0;
+        $bad_product_work_count = $this->model_tool_chatgpt_generator->getProductsBad();
+        if($bad_product_work_count){
+            $data['bad_product_work_count'] = count($bad_product_work_count);
+        }
+
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
         $data['footer'] = $this->load->controller('common/footer');
 
         $this->response->setOutput($this->load->view('extension/module/chatgpt_generator', $data));
+    }
+
+    public function setProductList(){
+        $json = array();
+
+        $this->load->model('tool/chatgpt_generator');
+        $products = $this->model_tool_chatgpt_generator->getProductDescriptionEmpty();
+
+        if(count($products)){
+            foreach ($products as $product){
+                $this->model_tool_chatgpt_generator->addProduct($product['product_id']);
+            }
+        }
+
+        $product_work_count = $this->model_tool_chatgpt_generator->getProducts();
+        $product_work_count = count($product_work_count);
+        $json['product_work_count'] = trim($product_work_count);
+
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode($json));
+    }
+
+    public function setAllProductList(){
+        $json = array();
+
+        $this->load->model('tool/chatgpt_generator');
+        $this->load->model('catalog/product');
+        $products = $this->model_catalog_product->getProducts();
+
+        if(count($products)){
+            foreach ($products as $product){
+                $this->model_tool_chatgpt_generator->addProduct($product['product_id']);
+            }
+        }
+
+        $product_work_count = $this->model_tool_chatgpt_generator->getProducts();
+        $product_work_count = count($product_work_count);
+        $json['product_work_count'] = trim($product_work_count);
+
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode($json));
+    }
+
+    public function setBadProductList(){
+        $json = array();
+
+        $this->load->model('tool/chatgpt_generator');
+        $products = $this->model_tool_chatgpt_generator->getProductsBad();
+
+        if(count($products)){
+            foreach ($products as $product){
+                $this->model_tool_chatgpt_generator->addProduct($product['product_id']);
+            }
+        }
+
+        $product_work_count = $this->model_tool_chatgpt_generator->getProducts();
+        $product_work_count = count($product_work_count);
+        $json['product_work_count'] = trim($product_work_count);
+
+        $bad_product_work_count = $this->model_tool_chatgpt_generator->getProductsBad();
+        $bad_product_work_count = count($bad_product_work_count);
+        $json['bad_product_work_count'] = trim($bad_product_work_count);
+
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode($json));
+    }
+    public function clearProductList(){
+        $json = array();
+
+        $this->load->model('tool/chatgpt_generator');
+        $products = $this->model_tool_chatgpt_generator->getProducts();
+
+        if(count($products)){
+            foreach ($products as $product){
+                $this->model_tool_chatgpt_generator->deleteProduct($product['product_id']);
+            }
+        }
+
+        $product_work_count = $this->model_tool_chatgpt_generator->getProducts();
+        $product_work_count = count($product_work_count);
+        $json['product_work_count'] = trim($product_work_count);
+
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode($json));
+    }
+
+    public function addManualProductList(){
+        $json = array();
+        $this->load->model('tool/chatgpt_generator');
+        if(isset($this->request->post['product_manual']) && count($this->request->post['product_manual'])){
+            foreach ($this->request->post['product_manual'] as $product_id){
+                $this->model_tool_chatgpt_generator->addProduct($product_id);
+            }
+        }
+
+        $product_work_count = $this->model_tool_chatgpt_generator->getProducts();
+        $product_work_count = count($product_work_count);
+        $json['product_work_count'] = trim($product_work_count);
+
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode($json));
     }
 
     public function testRequest(){
@@ -243,20 +367,8 @@ class ControllerExtensionModuleChatgptGenerator extends Controller {
     }
 
     public function install(){
-        $this->load->model('setting/setting');
-        $data = array(
-            'module_chatgpt_generator_status' => 0,
-            'module_chatgpt_generator_product_description_status' => 1,
-            'module_chatgpt_generator_api_key' => '',
-            'module_chatgpt_generator_model' => 'text-davinci-003',
-            'module_chatgpt_generator_temperature' => 0.9,
-            'module_chatgpt_generator_max_tokens' => 1000,
-            'module_chatgpt_generator_top_p' => 1,
-            'module_chatgpt_generator_presence_penalty' => 0.0,
-            'module_chatgpt_generator_frequency_penalty' => 0.0,
-            'module_chatgpt_generator_stop' => '',
-            'module_chatgpt_generator_prompt' => 'Generate product description for seo store. For product #product_name#. Please minimum 500 words',
-        );
-        $this->model_setting_setting->editSetting('module_chatgpt_generator', $data);
+        $this->load->model('extension/module/chatgpt_generator');
+        $this->model_extension_module_chatgpt_generator->install();
+
     }
 }

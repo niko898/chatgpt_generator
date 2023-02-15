@@ -13,9 +13,13 @@ class ModelExtensionModuleChatgptGenerator extends Model {
             'module_chatgpt_generator_presence_penalty' => 0.0,
             'module_chatgpt_generator_frequency_penalty' => 0.0,
             'module_chatgpt_generator_stop' => '',
-            'module_chatgpt_generator_prompt' => 'Generate product description for seo store. For product #product_name#. Please minimum 500 words',
+            'module_chatgpt_generator_prompt' => 'Generate product description for seo store. For product {product_name}. Minimum 500 words.',
         );
         $this->model_setting_setting->editSetting('module_chatgpt_generator', $data);
+
+        $this->addPermission($this->user->getGroupId(), 'access', 'tool/chatgpt_generator');
+        $this->addPermission($this->user->getGroupId(), 'modify', 'tool/chatgpt_generator');
+
         $this->installTables();
     }
 

@@ -302,6 +302,27 @@ class ControllerExtensionModuleChatgptGenerator extends Controller {
         $this->response->setOutput(json_encode($json));
     }
 
+    public function clearBadProductList(){
+        $json = array();
+
+        $this->load->model('tool/chatgpt_generator');
+        $products = $this->model_tool_chatgpt_generator->getBadProducts();
+
+        if(count($products)){
+            foreach ($products as $product){
+                $this->model_tool_chatgpt_generator->deleteBadProduct($product['product_id']);
+            }
+        }
+
+        $bad_product_work_count = $this->model_tool_chatgpt_generator->getProductsBad();
+        $bad_product_work_count = count($bad_product_work_count);
+        $json['bad_product_work_count'] = trim($bad_product_work_count);
+
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode($json));
+    }
+
+
     public function addManualProductList(){
         $json = array();
         $this->load->model('tool/chatgpt_generator');

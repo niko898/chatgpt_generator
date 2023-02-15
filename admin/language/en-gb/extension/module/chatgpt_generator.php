@@ -16,6 +16,7 @@ $_['button_add_to_bad_list']   = 'Add Bad products to work list';
 $_['button_clear_products']        = 'Clear the work list';
 $_['button_manual_add_to_list']        = 'Add these products to work list';
 $_['button_test_start']        = 'Start generation (only for few products, please use the cron)';
+$_['button_clear_bad_products']        = 'Clear the bad list';
 
 // Entry
 $_['entry_status']     = 'Status';
@@ -53,6 +54,7 @@ $_['help_languages']     = 'Languages which module will work (The lanuage will a
 $_['help_product_work_count']     = 'Here you should to add products to work list, you can add all products or only where are empty descriptions. (Without this list the generator won`t work, the count must be more than 0)';
 $_['help_bad_product_work_count']     = 'This list contain count of bad products, bad products this is when during generation the module got some error - this product will add to bad lists automatically';
 $_['help_manual']     = 'With this field you can add the product list what will be generated';
+$_['help_prompt']     = 'This is the main prompt to ChaGPT, you can use tags : {product_name}, {product_model}, {product_sku}, {product_ean}';
 
 // Error
 $_['error_permission'] = 'Warning: You do not have permission to modify account module!';
